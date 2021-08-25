@@ -1,7 +1,8 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<!-- HEAD -->
+<title>OS Process Manager for Erlang VM</title>
+<meta name="keywords" content="OS, linux, process, manager, job, scheduler, erlang, system, cron">
   <link rel="stylesheet" type="text/css" href="stylesheet.css" title="EDoc">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.2.0/styles/github-dark-dimmed.min.css">
@@ -26,7 +27,7 @@
 <div class="main">
 <a name="top"></a>
 <h1>OS Process Manager for Erlang VM</h1>
-<p><b>Version:</b> 1.9-154-g1a230ef</p>
+<p><b>Version:</b> 1.9-168-gd22e2c1</p>
 <p><b>Authors:</b> Serge Aleynikov (<a href="mailto:saleyn(at)gmail.com"><tt>saleyn(at)gmail.com</tt></a>).</p>
 
 
@@ -38,7 +39,7 @@
 <a href="https://hex.pm/packages/erlexec"><img src="https://img.shields.io/hexpm/dt/erlexec.svg"></a></p>
 
 
-<h2> Summary </h2>
+<h1> Summary </h1>
 
 <p>Execute and control OS processes from Erlang/OTP.</p>
 
@@ -51,6 +52,8 @@ execution of OS processes.</p>
  <ul>
    <li>Start/stop OS commands and get their OS process IDs, and termination reason
   (exit code, signal number, core dump status).
+   </li>
+   <li>Support OS commands with unicode characters.
    </li>
    <li>Manage/monitor externally started OS processes.
    </li>
@@ -69,7 +72,7 @@ execution of OS processes.</p>
    </li>
    <li>Monitor termination of OS processes.
    </li>
-   <li>Terminate all processes beloging to an OS process group.
+   <li>Terminate all processes belonging to an OS process group.
    </li>
    <li>Kill processes belonging to an OS process group at process exit.
    </li>
@@ -95,7 +98,7 @@ when the emulator exits. </p>
 <p>The <code>erlexec</code> application has been in production use by Erlang and Elixir systems,
 and is stable.</p>
 
-<h2> Donations </h2>
+<h1> Donations </h1>
 If you find this project useful, please donate to:
  <ul>
    <li>Bitcoin: <code>12pt8TcoMWMkF6iY66VJQk95ntdN4pFihg</code>
@@ -104,15 +107,54 @@ If you find this project useful, please donate to:
    </li>
 
  </ul>
-<h2> Supported Platforms</h2>
+<h1> Supported Platforms</h1>
 
 <p>Linux, Solaris, FreeBSD, OpenBSD, MacOS X</p>
 
-<h2> DOCUMENTATION </h2>
+<h1> DOCUMENTATION </h1>
 
 <p>See <a href="http://saleyn.github.io/erlexec" target="_top"><tt>http://saleyn.github.io/erlexec</tt></a></p>
 
-<h2> BUILDING </h2>
+<h1> USAGE </h1>
+
+<h2> Erlang: import as a dependency </h2>
+
+ <ul>
+   <li>Add dependency in <code>rebar.config</code>:
+   </li>
+ </ul>
+
+
+<pre ><code class="language-erlang">{deps,
+ [% ...
+  {erlexec, "~&gt; 1.0"}
+  ]}.</code></pre >
+
+ <ul>
+   <li>Include in your <code>*.app.src</code>:
+   </li>
+ </ul>
+
+
+<pre ><code class="language-erlang">{applications,
+   [kernel,
+    stdlib,
+    % ...
+    erlexec
+   ]}</code></pre >
+
+<h2> Elixir: import as a dependency </h2>
+
+
+
+<pre ><code class="language-erlang">defp deps do
+  [
+    # ...
+    {:erlexec, "~&gt; 1.0"}
+  ]
+end</code></pre >
+
+<h1> BUILDING FROM SOURCE </h1>
 
 <p>Make sure you have <a href="http://github.com/basho/rebar">rebar</a> or
 <a href="http://github.com/basho/rebar3">rebar3</a> installed locally and the rebar script
@@ -145,13 +187,13 @@ variable:</p>
 
 <pre ><code class="language-erlang">$ USE_POLL=0 make</code></pre >
 
-<h2> LICENSE </h2>
+<h1> LICENSE </h1>
 
 <p>The program is distributed under BSD license.</p>
 
 <p>Copyright @copy; 2003 Serge Aleynikov</p>
 
-<h2> Architecture</h2>
+<h1> Architecture</h1>
 
 
 <pre ><code class="language-erlang">  *---------------------------*
@@ -177,7 +219,7 @@ variable:</p>
     |OsPid1| |OsPid2| |OsPidN|    Managed Child OS processes
     +------+ +------+ +------+</code></pre >
 
-<h2> Configuration Options</h2>
+<h1> Configuration Options</h1>
 
 <p>See description of types in <a docgen-rel="seetype" docgen-href="exec#exec_options/0" href="exec.html#type-exec_options"><code>exec:exec_options()</code></a>.</p>
 
@@ -185,20 +227,27 @@ variable:</p>
 running Erlang inside a docker container, you might need to ensure that <code>SHELL</code>
 is properly set prior to starting the emulator.</p>
 
-<h2> Examples</h2>
+<h1> Examples</h1>
 
-<h3> Starting/stopping an OS process</h3>
+<h2> Starting/stopping an OS process</h2>
 
 
-<pre ><code class="language-erlang">1&gt; exec:start([]).                                      % Start the port program.
+<pre ><code class="language-erlang">1&gt; exec:start().                                        % Start the port program.
 {ok,&lt;0.32.0&gt;}
 2&gt; {ok, _, I} = exec:run_link("sleep 1000", []).        % Run a shell command to sleep for 1000s.
 {ok,&lt;0.34.0&gt;,23584}
 3&gt; exec:stop(I).                                        % Kill the shell command.
 ok                                                      % Note that this could also be accomplished
-                                                        % by doing exec:stop(pid(0,34,0)).</code></pre >
+                                                        % by doing exec:stop(pid(0,34,0)).</code></pre ><p>
+In Elixir:</p>
 
-<h3> Clearing environment or unsetting an env variable of the child process</h3>
+
+<pre ><code class="language-erlang">iex(1)&gt; :exec.start
+{:ok, #PID&lt;0.112.0&gt;}
+iex(2)&gt; :exec.run("echo ok", [:sync, :stdout])
+{:ok, [stdout: ["ok\n"]]}</code></pre >
+
+<h2> Clearing environment or unsetting an env variable of the child process</h2>
 
 
 <pre ><code class="language-erlang">%% Clear environment with {env, [clear]} option:
@@ -213,7 +262,7 @@ ok
 [...]
 ok</code></pre >
 
-<h3> Running exec-port as another effective user</h3>
+<h2> Running exec-port as another effective user</h2>
 
 <p>In order to be able to use this feature the current user must either have <code>sudo</code>
 rights or the <code>exec-port</code> file must be owned by <code>root</code> and have the SUID bit set
@@ -241,7 +290,7 @@ $ erl
 $ ps haxo user,comm | grep exec-port
 wheel      exec-port</code></pre >
 
-<h3> Allowing exec-port to run commands as other effective users</h3>
+<h2> Allowing exec-port to run commands as other effective users</h2>
 
 <p>In order to be able to use this feature the current user must either have <code>sudo</code>
 rights or the <code>exec-port</code> file must have the SUID bit set, and the <code>exec-port</code> file
@@ -266,7 +315,7 @@ $ erl
 $ ps haxo user,comm | grep exec-port
 wheel      exec-port</code></pre >
 
-<h3> Running the port program as root</h3>
+<h2> Running the port program as root</h2>
 
 <p>While running the port program as root is highly discouraged, since it opens a security
 hole that gives users an ability to damage the system, for those who might need such an
@@ -290,7 +339,7 @@ $ erl
 $ ps haxo user,comm | grep exec-port
 root       exec-port</code></pre >
 
-<h3> Killing an OS process</h3>
+<h2> Killing an OS process</h2>
 
 <p>Note that killing a process can be accomplished by running kill(3) command
 in an external shell, or by executing exec:kill/2.</p>
@@ -306,7 +355,7 @@ ok
 {signal,15,false}                                       % The program got SIGTERM signal and produced
                                                         % no core file.</code></pre >
 
-<h3> Using a custom success return code</h3>
+<h2> Using a custom success return code</h2>
 
 
 <pre ><code class="language-erlang">1&gt; exec:start_link([]).
@@ -316,7 +365,7 @@ ok
 3&gt; exec:run("sleep 1", [{success_exit_code, 1}, sync]).
 {error,[{exit_status,1}]}                               % Note that the command returns exit code 1</code></pre >
 
-<h3> Redirecting OS process stdout to a file</h3>
+<h2> Redirecting OS process stdout to a file</h2>
 
 
 <pre ><code class="language-erlang">7&gt; f(I), {ok, _, I} = exec:run_link("for i in 1 2 3; do echo \"Test$i\"; done",
@@ -328,7 +377,7 @@ Test2
 Test3
 ok</code></pre >
 
-<h3> Redirecting OS process stdout to screen, an Erlang process or a custom function</h3>
+<h2> Redirecting OS process stdout to screen, an Erlang process or a custom function</h2>
 
 
 <pre ><code class="language-erlang">9&gt; exec:run("echo Test", [{stdout, print}]).
@@ -348,7 +397,7 @@ Shell got {stdout,18382,&lt;&lt;"Hello World!\n"&gt;&gt;}
 Shell got {stderr,18382,&lt;&lt;"ERR!!\n"&gt;&gt;}
 ok</code></pre >
 
-<h3> Appending OS process stdout to a file</h3>
+<h2> Appending OS process stdout to a file</h2>
 
 
 <pre ><code class="language-erlang">13&gt; exec:run("for i in 1 2 3; do echo TEST$i; done",
@@ -360,7 +409,7 @@ ok</code></pre >
 {ok,&lt;&lt;"TEST1\nTEST2\nTEST3\nTest4\n"&gt;&gt;}
 15&gt; file:delete("/tmp/out").</code></pre >
 
-<h3> Setting up a monitor for the OS process</h3>
+<h2> Setting up a monitor for the OS process</h2>
 
 
 <pre ><code class="language-erlang">&gt; f(I), f(P), {ok, P, I} = exec:run("echo ok", [{stdout, self()}, monitor]).
@@ -370,7 +419,7 @@ Shell got {stdout,18950,&lt;&lt;"ok\n"&gt;&gt;}
 Shell got {'DOWN',18950,process,&lt;0.263.0&gt;,normal}
 ok</code></pre >
 
-<h3> Managing an externally started OS process</h3><p>
+<h2> Managing an externally started OS process</h2><p>
 This command allows to instruct erlexec to begin monitoring given OS process
 and notify Erlang when the process exits. It is also able to send signals to
 the process and kill it.</p>
@@ -392,7 +441,7 @@ ok
 21&gt; file:delete("/tmp/pid").
 ok</code></pre >
 
-<h3> Specifying a custom process shutdown delay in seconds</h3>
+<h2> Specifying a custom process shutdown delay in seconds</h2>
 
 
 <pre ><code class="language-erlang">% Execute an OS process (script) that blocks SIGTERM with custom kill timeout, and monitor
@@ -405,7 +454,7 @@ ok
 24&gt; f(M), receive M -&gt; M after 10000 -&gt; timeout end.                                          
 {'DOWN',26347,process,&lt;0.403.0&gt;,normal}</code></pre >
 
-<h3> Specifying a custom kill command for a process</h3>
+<h2> Specifying a custom kill command for a process</h2>
 
 
 <pre ><code class="language-erlang">% Execute an OS process (script) that blocks SIGTERM, and uses a custom kill command,
@@ -426,7 +475,7 @@ ok
 5&gt; f(M), receive M -&gt; M after 1000 -&gt; timeout end.                                          
 {'DOWN',26347,process,&lt;0.403.0&gt;,normal}</code></pre >
 
-<h3> Communicating with an OS process via STDIN</h3>
+<h2> Communicating with an OS process via STDIN</h2>
 
 
 <pre ><code class="language-erlang">% Execute an OS process (script) that reads STDIN and echoes it back to Erlang
@@ -442,7 +491,7 @@ ok
 28&gt; f(M), receive M -&gt; M after 10000 -&gt; timeout end.
 {'DOWN',26431,process,&lt;0.427.0&gt;,normal}</code></pre >
 
-<h3> Communicating with an OS process via STDIN and sending end-of-file</h3>
+<h2> Communicating with an OS process via STDIN and sending end-of-file</h2>
 
 
 <pre ><code class="language-erlang">2&gt; Watcher = spawn(fun F() -&gt; receive Msg -&gt; io:format("Got: ~p\n", [Msg]), F() after 60000 -&gt; ok end end).
@@ -459,7 +508,7 @@ ok
 ok
 Got: {stdout,26143,&lt;&lt;"baz\nbar\nfoo\n"&gt;&gt;}</code></pre >
 
-<h3> Running OS commands synchronously</h3>
+<h2> Running OS commands synchronously</h2>
 
 
 <pre ><code class="language-erlang">% Execute an shell script that blocks for 1 second and return its termination code
@@ -480,7 +529,7 @@ Got: {stdout,26143,&lt;&lt;"baz\nbar\nfoo\n"&gt;&gt;}</code></pre >
 33&gt; exec:run("echo Test 1&gt;&amp;2", [{stderr, stdout}, stdout, sync]).
 {ok, [{stdout, [&lt;&lt;"Test\n"&gt;&gt;]}]}</code></pre >
 
-<h3> Running OS commands with/without shell</h3>
+<h2> Running OS commands with/without shell</h2>
 
 
 <pre ><code class="language-erlang">% Execute a command by an OS shell interpreter
@@ -493,7 +542,7 @@ Got: {stdout,26143,&lt;&lt;"baz\nbar\nfoo\n"&gt;&gt;}</code></pre >
 36&gt; exec:run(["/bin/bash", "-c", "echo ok"], [sync, stdout])).
 {ok, [{stdout, [&lt;&lt;"ok\n"&gt;&gt;]}]}</code></pre >
 
-<h3> Running OS commands with pseudo terminal (pty)</h3>
+<h2> Running OS commands with pseudo terminal (pty)</h2>
 
 
 <pre ><code class="language-erlang">% Execute a command without a pty
@@ -503,7 +552,7 @@ Got: {stdout,26143,&lt;&lt;"baz\nbar\nfoo\n"&gt;&gt;}</code></pre >
 38&gt; exec:run("echo hello", [sync, stdout, pty]).
 {ok,[{stdout,[&lt;&lt;"hello"&gt;&gt;,&lt;&lt;"\r\n"&gt;&gt;]}]}</code></pre >
  
-<h3> Kill a process group at process exit</h3>
+<h2> Kill a process group at process exit</h2>
 
 
 <pre ><code class="language-erlang">% In the following scenario the process P0 will create a new process group

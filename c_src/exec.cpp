@@ -271,9 +271,9 @@ int main(int argc, char* argv[])
             terminated = true;
             break;
         }
-        
+
         auto is_err = false;
-        
+
         // Check for SIGCHLD
         if (fdhandler.is_readable(FdType::SIGCHILD)) {
             if (!process_sigchld())
@@ -500,7 +500,7 @@ bool process_command(bool is_err)
                     send_error_str(transId, true, "badarg");
                     return true;
                 }
- 
+
                 if (!eis.decodeIntOrBool(val)) {
                     send_error_str(transId, false, "bad value type of pty option %s", key.c_str());
                     return true;
@@ -520,7 +520,7 @@ bool process_command(bool is_err)
 
             break;
         }
-            
+
         case STDIN: {
             // {stdin, OsPid::integer(), Data::binary()}
             long pid;
@@ -593,13 +593,7 @@ void initialize(int userid, bool use_alt_fds, bool is_root, bool requested_root)
     // only users from the `{limit_users, Users}` list are permitted
     // to be effective users.
 
-    if (is_root && userid == 0 && !requested_root) {
-        DEBUG(true, "Not allowed to run as root without setting effective user (-user option)!");
-        exit(4);
-    } else if (!is_root && userid == 0 && requested_root) {
-        DEBUG(true, "Requested to run as root (-user root), but effective user is not root!");
-        exit(4);
-    } else if (!is_root && userid > 0 && int(geteuid()) != userid) {
+    if (!is_root && userid > 0 && int(geteuid()) != userid) {
         DEBUG(true, "Cannot switch effective user to euid=%d", userid);
         exit(4);
     } else if (!getenv("SHELL") || strcmp(getenv("SHELL"), "") == 0) {
@@ -739,7 +733,7 @@ int finalize()
 
             fdhandler.clear();
             fdhandler.append_read_fd(sigchld_pipe[0], FdType::SIGCHILD, true);
-            auto ts = deadline - timeout; 
+            auto ts = deadline - timeout;
             while ((cnt = fdhandler.wait_for_event(ts)) < 0 && errno == EINTR);
 
             if (cnt < 0) {
